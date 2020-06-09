@@ -6,6 +6,7 @@
 #include "render.h"
 #include "tiny_obj_loader.h"
 #include "gtest/gtest.h"
+#include <glm/ext/matrix_transform.hpp>
 
 using namespace gfx;
 
@@ -15,7 +16,11 @@ TEST(model_test, teapot_model) {
 
     Model tpot{"teapot/teapot.obj"};
     Surface render_target{1000, 1000, black};
-    renderWireframe(tpot, render_target, 0.01f);
+
+    auto m4 = glm::identity<glm::mat4>();
+    auto rot = glm::rotate(m4, glm::radians(30.0f), glm::vec3{0.5, 0, 0.5});
+
+    renderWireframe(tpot, render_target, rot, .01f);
     render_target.saveBMP("teapot.bmp");
 }
 

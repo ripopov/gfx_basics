@@ -16,7 +16,7 @@ glm::ivec3 ToScreenSpace(glm::vec3 in, const Surface& target) {
     return out;
 }
 
-void renderWireframe(const Model& model, Surface& target, float scale) {
+void renderWireframe(const Model& model, Surface& target, const glm::mat4& transform, float scale) {
     std::vector<Color> colors{red, green, blue};
 
     // Loop over shapes
@@ -33,7 +33,7 @@ void renderWireframe(const Model& model, Surface& target, float scale) {
 
             tri_vec3 vertices_screen;
             for (int i = 0; i < vertices_screen.size(); ++i) {
-                vertices[i] = scale * vertices[i];
+                vertices[i] = scale * (transform * glm::vec4 (vertices[i], 1.0f));
                 vertices_screen[i] = ToScreenSpace(vertices[i], target);
             }
 
