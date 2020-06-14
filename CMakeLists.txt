@@ -19,6 +19,7 @@ find_package(glm CONFIG REQUIRED)
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(sdl2-image CONFIG REQUIRED)
+find_package(sdl2-ttf CONFIG REQUIRED)
 
 if (MSVC)
     add_compile_options(/W3 /WX)
@@ -28,6 +29,7 @@ endif ()
 
 add_subdirectory(resource)
 add_subdirectory(mygfxlib)
+add_subdirectory(gui_app)
 
 enable_testing()
 add_subdirectory(test)

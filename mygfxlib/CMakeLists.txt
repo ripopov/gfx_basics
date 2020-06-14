@@ -1,4 +1,6 @@
 add_library(mygfx
+        camera.cpp
+        camera.h
         color.h
         model.cpp
         model.h

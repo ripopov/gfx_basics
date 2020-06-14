@@ -11,6 +11,6 @@
 namespace gfx
 {
 
-void renderWireframe(const Model& model, Surface &target, const glm::mat4& transform, float scale = 1.0f);
+void renderWireframe(const Model& model, Surface &target, const glm::mat4& transform);
 
 }
