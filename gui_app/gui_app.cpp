@@ -87,7 +87,7 @@ void GuiApp::initSDL() {
 
     createScene();
 
-    renderText("Controls : W A S D");
+    renderText("Controls : W A S D M");
     renderScene();
 }
 
@@ -106,6 +106,11 @@ void GuiApp::createScene() {
         box_dy.model = std::make_unique<Model>("cube/cube.obj");
         box_dy.modelMtx = glm::translate(glm::mat4{1.0f}, glm::vec3{0, -1.1 * i, 0});
     }
+
+    auto& teapot = scene.emplace_back();
+    teapot.model = std::make_unique<Model>("teapot/teapot.obj");
+    teapot.modelMtx = glm::scale(glm::mat4{1.0f}, glm::vec3{0.01f,0.01f,0.01f});
+    teapot.modelMtx = glm::translate(teapot.modelMtx, glm::vec3 {50.0f, 50.0f, 0.0f});
 }
 
 void GuiApp::renderText(const char* text) {
@@ -155,11 +160,15 @@ void GuiApp::runMainLoop() {
                 break;
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                    std::cout << "Resize " << event.window.data1 << " " << event.window.data2 << std::endl;
                     screen_width = event.window.data1;
                     screen_height = event.window.data2;
                     updateScene();
                 }
+                break;
+            case SDL_MOUSEMOTION:
+                camera.rotateRoundUp(-0.001f*event.motion.xrel);
+                camera.rotateRoundRight(-0.001f*event.motion.yrel);
+                updateScene();
                 break;
             default:
                 break;
@@ -226,6 +235,18 @@ void GuiApp::handleKeys() {
         message += " MOVE_BACKWARD";
         camera.move(-0.1f);
         updateScene();
+    }
+
+    if (keystate[SDL_SCANCODE_M]) {
+
+        if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+        {
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+        }
+        else
+        {
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        }
     }
 
     renderText(message.c_str());

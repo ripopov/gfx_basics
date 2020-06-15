@@ -21,6 +21,8 @@ public:
     void strafe(float distance);
     // Rotate around Up axis
     void rotateRoundUp(float theta_rad);
+    // Rotate around Right dir axis
+    void rotateRoundRight(float theta_rad);
 
     void setAspectRatio(int width, int height);
 

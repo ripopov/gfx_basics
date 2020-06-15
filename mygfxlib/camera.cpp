@@ -20,4 +20,11 @@ void Camera::rotateRoundUp(float theta_rad) {
     look_dir = rot * glm::vec4{look_dir, 0.0f};
 }
 
+void Camera::rotateRoundRight(float theta_rad)
+{
+    auto rot = glm::rotate(theta_rad, right_dir);
+    up_dir = rot * glm::vec4{up_dir, 0.0f};
+    look_dir = rot * glm::vec4{look_dir, 0.0f};
+}
+
 } // namespace gfx
