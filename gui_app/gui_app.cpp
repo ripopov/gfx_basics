@@ -7,7 +7,6 @@
 #include "camera.h"
 #include "model.h"
 #include "render.h"
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <vector>

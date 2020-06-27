@@ -38,14 +38,19 @@ void renderWireframe(const Model& model, Surface& target, const glm::mat4& trans
                 vertices_screen[i] = ToScreenSpace(vertices[i], target);
             }
 
-            target.drawLine(glm::ivec2{vertices_screen[0].x, vertices_screen[0].y},
-                            glm::ivec2{vertices_screen[1].x, vertices_screen[1].y}, color);
+            auto norm = glm::cross(vertices[1] - vertices[0], vertices[2] - vertices[0]);
 
-            target.drawLine(glm::ivec2{vertices_screen[1].x, vertices_screen[1].y},
-                            glm::ivec2{vertices_screen[2].x, vertices_screen[2].y}, color);
+            if (norm.z > 0)
+            {
+                target.drawLine(glm::ivec2{vertices_screen[0].x, vertices_screen[0].y},
+                                glm::ivec2{vertices_screen[1].x, vertices_screen[1].y}, color);
 
-            target.drawLine(glm::ivec2{vertices_screen[2].x, vertices_screen[2].y},
-                            glm::ivec2{vertices_screen[0].x, vertices_screen[0].y}, color);
+                target.drawLine(glm::ivec2{vertices_screen[1].x, vertices_screen[1].y},
+                                glm::ivec2{vertices_screen[2].x, vertices_screen[2].y}, color);
+
+                target.drawLine(glm::ivec2{vertices_screen[2].x, vertices_screen[2].y},
+                                glm::ivec2{vertices_screen[0].x, vertices_screen[0].y}, color);
+            }
         }
     }
 }
