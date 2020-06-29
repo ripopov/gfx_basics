@@ -15,6 +15,7 @@
 namespace gfx {
 
 using tri_vec3 = std::array<glm::vec3, 3>;
+using tri_vec4 = std::array<glm::vec4, 3>;
 
 /**
  * Model, loaded from Wavefront obj files
