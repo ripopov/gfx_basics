@@ -135,7 +135,7 @@ void GuiApp::renderScene()
         for (const auto& mod : scene)
         {
             const auto transMtx = projectionMtx * viewMtx * mod.modelMtx;
-            renderWireframe(*mod.model, renderSurf, transMtx);
+            renderToTarget(*mod.model, renderSurf, transMtx);
         }
 
         if (sceneTexture != nullptr) {

@@ -11,6 +11,6 @@
 namespace gfx
 {
 
-void renderWireframe(const Model& model, Surface &target, const glm::mat4& transform);
+void renderToTarget(const Model& model, Surface &target, const glm::mat4& transform);
 
 }

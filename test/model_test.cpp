@@ -28,7 +28,7 @@ TEST(model_test, teapot_model) {
     cam.strafe(1.0f);
     auto trans = cam.projMtx()*cam.viewMtx()*modelMtx;
 
-    renderWireframe(tpot, render_target, trans);
+    renderToTarget(tpot, render_target, trans);
     render_target.saveBMP("teapot.bmp");
 }
 
@@ -42,7 +42,7 @@ TEST(model_test, box_model) {
     cam.strafe(1.0f);
     auto trans = cam.projMtx() * cam.viewMtx();
 
-    renderWireframe(tpot, render_target, trans);
+    renderToTarget(tpot, render_target, trans);
     render_target.saveBMP("cube.bmp");
 }
 
