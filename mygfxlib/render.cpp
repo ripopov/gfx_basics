@@ -6,6 +6,7 @@
 #include "color.h"
 
 #include <vector>
+#include <iostream>
 
 namespace gfx {
 
@@ -20,6 +21,12 @@ static bool isBackFace(const tri_vec3& ndc)
 {
     auto norm = glm::cross(ndc[1] - ndc[0], ndc[2] - ndc[0]);
     return norm.z < 0;
+}
+
+glm::vec3 normal(const tri_vec3& tri)
+{
+    auto norm = glm::cross(tri[1] - tri[0], tri[2] - tri[0]);
+    return glm::normalize(norm);
 }
 
 static bool rejectNegW(const tri_vec4& clip)
@@ -85,16 +92,25 @@ static glm::vec3 barycentric(glm::vec2 point, glm::vec2 tri_a, glm::vec2 tri_b, 
     return {1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z};
 }
 
-static void drawTriangle(const tri_vec3& tri_scr, Surface& target) {
+static void drawTriangle(const tri_vec3& tri_scr, Surface& target, const Model& model, int shape_idx, int face_idx) {
     const auto bbox = boundingBox(tri_scr, target.width(), target.height());
+
+    const auto mat_idx = model.shapes[shape_idx].mesh.material_ids[face_idx];
+    const auto& texture = *model.mat_diff_tex[mat_idx];
 
     for (int x = int(bbox[0].x); x <= int(bbox[1].x); ++x) {
         for (int y = int(bbox[0].y); y <= int(bbox[1].y); ++y) {
 
             const auto bary = barycentric(glm::vec2{x, y}, tri_scr[0], tri_scr[1], tri_scr[2]);
 
-            if (bary.x >= 0 && bary.y >= 0 && bary.z >= 0) {
-                target.xy(x, y) = blue;
+            if (bary[0] >= 0 && bary[1] >= 0 && bary[2] >= 0) {
+
+                const auto txface = model.face_texcoords(model.shapes[shape_idx], face_idx);
+                const auto txpoint = txface[0] * bary[0] + txface[1] * bary[1] + txface[2] * bary[2];
+
+                const auto color = texture.xy(static_cast<int>(txpoint.x * (texture.width() - 1)),
+                                              static_cast<int>(txpoint.y * (texture.height() - 1)));
+                target.xy(x, y) = color;
             }
         }
     }
@@ -103,7 +119,7 @@ static void drawTriangle(const tri_vec3& tri_scr, Surface& target) {
 void renderToTarget(const Model& model, Surface& target, const glm::mat4& transform) {
 
     // Loop over shapes
-    for (size_t s = 0; s < model.shapes.size(); s++) {
+    for (int s = 0; s < model.shapes.size(); s++) {
 
         const auto& shape = model.shapes[s];
 
@@ -127,17 +143,19 @@ void renderToTarget(const Model& model, Surface& target, const glm::mat4& transf
             }
 
             if (clipTrivialReject(vertices_ndc))
-                continue;;
+                continue;
 
             if (isBackFace(vertices_ndc))
                 continue;
+
+            const glm::vec3 n = normal({vertices_clip[0], vertices_clip[1], vertices_clip[2]});
 
             tri_vec3 vertices_screen;
             for (int i = 0; i < 3; ++i) {
                 vertices_screen[i] = ToScreenSpace(vertices_ndc[i], target);
             }
 
-            drawTriangle(vertices_screen, target);
+            drawTriangle(vertices_screen, target, model, s, f);
             drawTriangleWireframe(vertices_screen, target);
         }
     }

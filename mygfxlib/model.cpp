@@ -36,7 +36,8 @@ Model::Model(const std::string& model_obj_file) {
             if (diffuse_textures.contains(mt.diffuse_texname)) {
                 mat_diff_tex.push_back(&diffuse_textures.at(mt.diffuse_texname));
             } else {
-                diffuse_textures.emplace(mt.diffuse_texname, (parent_dir / mt.diffuse_texname).string().c_str());
+                auto res = diffuse_textures.emplace(mt.diffuse_texname, (parent_dir / mt.diffuse_texname).string().c_str());
+                mat_diff_tex.push_back(&res.first->second);
             }
         } else {
             mat_diff_tex.push_back(nullptr);

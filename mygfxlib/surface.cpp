@@ -68,6 +68,11 @@ std::span<Color> Surface::operator[](int row) noexcept {
     return std::span<Color>(reinterpret_cast<Color*>(surf->pixels) + row * width(), width());
 }
 
+std::span<const Color> Surface::operator[](int row) const noexcept {
+    assert(row < height());
+    return std::span<const Color>(reinterpret_cast<Color*>(surf->pixels) + row * width(), width());
+}
+
 void Surface::saveBMP(const char* filename) const {
     auto ret = SDL_SaveBMP(surf, filename);
     if (ret != 0) {

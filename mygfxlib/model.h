@@ -14,6 +14,7 @@
 
 namespace gfx {
 
+using tri_vec2 = std::array<glm::vec2, 3>;
 using tri_vec3 = std::array<glm::vec3, 3>;
 using tri_vec4 = std::array<glm::vec4, 3>;
 
@@ -37,6 +38,19 @@ struct Model {
             tinyobj::real_t vy = attrib.vertices[3 * idx.vertex_index + 1];
             tinyobj::real_t vz = attrib.vertices[3 * idx.vertex_index + 2];
             res[v] = glm::vec3{vx, vy, vz};
+        }
+
+        return res;
+    }
+
+    [[nodiscard]] tri_vec2 face_texcoords(const tinyobj::shape_t& shape, int face) const {
+        tri_vec2 res;
+
+        for (int v = 0; v < 3; ++v) {
+            tinyobj::index_t idx = shape.mesh.indices[face * 3 + v];
+            tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
+            tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
+            res[v] = {tx, ty};
         }
 
         return res;

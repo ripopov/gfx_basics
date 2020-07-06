@@ -37,8 +37,10 @@ public:
 
     /// Note : row major order, surface[y][x]
     [[nodiscard]] std::span<Color> operator[](int row) noexcept;
+    [[nodiscard]] std::span<const Color> operator[](int row) const noexcept;
     /// Column-major access
     [[nodiscard]] Color &xy(int x, int y) noexcept { return (*this)[y][x]; }
+    [[nodiscard]] Color xy(int x, int y) const noexcept { return (*this)[y][x]; }
     /// Save into BMP file
     void saveBMP(const char *filename) const;
 
