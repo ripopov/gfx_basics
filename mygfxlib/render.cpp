@@ -92,8 +92,9 @@ static glm::vec3 barycentric(glm::vec2 point, glm::vec2 tri_a, glm::vec2 tri_b, 
     return {1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z};
 }
 
-static void drawTriangle(const tri_vec3& tri_scr, const tri_vec4& tri_clip, Surface& target, z_buffer_t& zbuf,
+static void drawTriangle(const tri_vec3& tri_scr, const tri_vec4& tri_clip, float intensity, Surface& target, z_buffer_t& zbuf,
                          const Model& model, int shape_idx, int face_idx) {
+
     const auto bbox = boundingBox(tri_scr, target.width(), target.height());
 
     const auto mat_idx = model.shapes[shape_idx].mesh.material_ids[face_idx];
@@ -120,14 +121,23 @@ static void drawTriangle(const tri_vec3& tri_scr, const tri_vec4& tri_clip, Surf
 
                 if (z < zbuf[x][y]) {
                     zbuf[x][y] = z;
-                    const auto color = texture.xy(static_cast<int>(txpoint.x * (texture.width() - 1)),
-                                                  static_cast<int>(txpoint.y * (texture.height() - 1)));
+                    auto color = texture.xy(static_cast<int>(txpoint.x * (texture.width() - 1)),
+                                            static_cast<int>(txpoint.y * (texture.height() - 1)));
+
+                    if (intensity > 0.05) {
+                        color = color * intensity;
+                    } else {
+                        color = color * 0.05f;
+                    }
+
                     target.xy(x, y) = color;
                 }
             }
         }
     }
 }
+
+static const glm::vec3 flash_light_dir{0,0,1};
 
 void renderToTarget(z_buffer_t& zbuf, const Model& model, Surface& target, const glm::mat4& transform) {
 
@@ -168,12 +178,14 @@ void renderToTarget(z_buffer_t& zbuf, const Model& model, Surface& target, const
 
             const glm::vec3 n = normal({vertices_clip[0], vertices_clip[1], vertices_clip[2]});
 
+            const auto intensity = glm::dot(n, flash_light_dir);
+
             tri_vec3 vertices_screen;
             for (int i = 0; i < 3; ++i) {
                 vertices_screen[i] = ToScreenSpace(vertices_ndc[i], target);
             }
 
-            drawTriangle(vertices_screen, vertices_clip, target, zbuf, model, s, f);
+            drawTriangle(vertices_screen, vertices_clip, intensity, target, zbuf, model, s, f);
 //            drawTriangleWireframe(vertices_screen, target);
         }
     }

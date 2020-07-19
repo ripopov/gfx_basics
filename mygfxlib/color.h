@@ -22,6 +22,14 @@ struct Color {
         return *this;
     }
 
+    Color& operator*(float intensity)
+    {
+        r = static_cast<uint8_t>(r * intensity);
+        g = static_cast<uint8_t>(g * intensity);
+        b = static_cast<uint8_t>(b * intensity);
+        return *this;
+    }
+
     operator uint32_t() const { return *reinterpret_cast<const uint32_t*>(this); }
 };
 
