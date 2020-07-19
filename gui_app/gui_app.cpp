@@ -99,11 +99,11 @@ void GuiApp::createScene() {
     for (int i = 1; i < 5; ++i) {
         auto& box_dx = scene.emplace_back();
         box_dx.model = std::make_unique<Model>("cube/cube.obj");
-        box_dx.modelMtx = glm::translate(glm::mat4{1.0f}, glm::vec3{1.1 * i, 0, 0});
+        box_dx.modelMtx = glm::translate(glm::mat4{1.0f}, glm::vec3{1.1 * i, 0, i});
 
         auto& box_dy = scene.emplace_back();
         box_dy.model = std::make_unique<Model>("cube/cube.obj");
-        box_dy.modelMtx = glm::translate(glm::mat4{1.0f}, glm::vec3{0, -1.1 * i, 0});
+        box_dy.modelMtx = glm::translate(glm::mat4{1.0f}, glm::vec3{0, -1.1 * i, -i});
     }
 
     auto& teapot = scene.emplace_back();
@@ -132,10 +132,12 @@ void GuiApp::renderScene()
         const auto viewMtx = camera.viewMtx();
         const auto projectionMtx = camera.projMtx();
 
+        z_buffer_t zbuf{static_cast<size_t>(renderSurf.width()), std::vector<float>(renderSurf.height(), 10000.0f)};
+
         for (const auto& mod : scene)
         {
             const auto transMtx = projectionMtx * viewMtx * mod.modelMtx;
-            renderToTarget(*mod.model, renderSurf, transMtx);
+            renderToTarget(zbuf, *mod.model, renderSurf, transMtx);
         }
 
         if (sceneTexture != nullptr) {

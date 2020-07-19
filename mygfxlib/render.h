@@ -11,6 +11,8 @@
 namespace gfx
 {
 
-void renderToTarget(const Model& model, Surface &target, const glm::mat4& transform);
+using z_buffer_t = std::vector<std::vector<float>>;
+
+void renderToTarget(z_buffer_t& zbuf, const Model& model, Surface &target, const glm::mat4& transform);
 
 }
