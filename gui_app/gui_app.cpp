@@ -52,6 +52,7 @@ private:
     TTF_Font* font = nullptr;
     SDL_Texture* textTexture = nullptr;
     SDL_Texture *sceneTexture = nullptr;
+    bool relativeMouseModeOn = false;
 };
 
 GuiApp::GuiApp() { initSDL(); }
@@ -167,8 +168,13 @@ void GuiApp::runMainLoop() {
                 }
                 break;
             case SDL_MOUSEMOTION:
-                camera.rotateRoundUp(-0.001f*event.motion.xrel);
-                camera.rotateRoundRight(-0.001f*event.motion.yrel);
+                if (relativeMouseModeOn) {
+                    camera.rotateRoundUp(-0.001f * event.motion.xrel);
+                    camera.rotateRoundRight(-0.001f * event.motion.yrel);
+                } else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                    camera.rotateRoundUp(0.001f * event.motion.xrel);
+                    camera.rotateRoundRight(0.001f * event.motion.yrel);
+                }
                 updateScene();
                 break;
             default:
@@ -212,7 +218,7 @@ void GuiApp::handleKeys() {
     /* handle sprite movement */
     auto keystate = SDL_GetKeyboardState(nullptr);
 
-    std::string message = " Keys: W,A,S,D; PRESSED: ";
+    std::string message = " Keys[ Move: W,A,S,D; Capture cursor : M] PRESSED: ";
 
     if (keystate[SDL_SCANCODE_D]) {
         message += " STRAFE_RIGHT";
@@ -242,10 +248,12 @@ void GuiApp::handleKeys() {
 
         if (SDL_GetRelativeMouseMode() == SDL_TRUE)
         {
+            relativeMouseModeOn = false;
             SDL_SetRelativeMouseMode(SDL_FALSE);
         }
         else
         {
+            relativeMouseModeOn = true;
             SDL_SetRelativeMouseMode(SDL_TRUE);
         }
     }
