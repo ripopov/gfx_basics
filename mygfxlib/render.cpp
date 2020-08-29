@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 namespace gfx {
 
@@ -29,23 +30,20 @@ glm::vec3 normal(const tri_vec3& tri)
     return glm::normalize(norm);
 }
 
-static bool rejectNegW(const tri_vec4& clip)
+static std::vector<tri_vec4> clipTriangle(const tri_vec4& tri_clip)
 {
-    if (clip[0].w < 0 && clip[1].w < 0 && clip[2].w < 0) {
-        return true;
-    }
-    return false;
-}
-
-static bool clipTrivialReject(const tri_vec3& ndc) {
-
-    if (std::any_of(begin(ndc), end(ndc), [](const auto& vert) {
-            return (vert.x > 1 || vert.x < -1) || (vert.y > 1 || vert.y < -1) || (vert.z > 1 || vert.z < -1);
-        })) {
-        return true;
+    // All vertices are in front of the camera and Z inside the frustum.
+    if (tri_clip[0].w > 0 && tri_clip[1].w > 0 && tri_clip[2].w > 0
+        && (std::abs(tri_clip[0].z) < tri_clip[0].w)
+        && (std::abs(tri_clip[1].z) < tri_clip[1].w)
+        && (std::abs(tri_clip[2].z) < tri_clip[2].w)
+        ) {
+        return {tri_clip};
     }
 
-    return false;
+    // TODO: Support triangles partially behind near plane
+
+    return {};
 }
 
 static void drawTriangleWireframe(const tri_vec3& tri_scr, Surface& target) {
@@ -61,9 +59,9 @@ static void drawTriangleWireframe(const tri_vec3& tri_scr, Surface& target) {
 
 static std::array<glm::vec2, 2> boundingBox(const tri_vec3& tri_scr, int target_width, int target_height)
 {
-    glm::vec2 max_xy{std::numeric_limits<float>::min(), std::numeric_limits<float>::min()};
-    glm::vec2 min_xy{std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
+    glm::vec2 max_xy{0.0, 0.0};
     glm::vec2 clamp_xy{float(target_width - 1), float(target_height - 1)};
+    glm::vec2 min_xy{clamp_xy.x, clamp_xy.y};
 
     for (const auto& v : tri_scr) {
         for (int xy = 0; xy < 2; ++xy) {
@@ -141,52 +139,43 @@ static const glm::vec3 flash_light_dir{0,0,1};
 
 void renderToTarget(z_buffer_t& zbuf, const Model& model, Surface& target, const glm::mat4& transform) {
 
-    float max_z = -1000.0f;
-    float min_z = 1000.0f;
-
     // Loop over shapes
     for (int s = 0; s < model.shapes.size(); s++) {
 
         const auto& shape = model.shapes[s];
 
         // Loop over faces(polygon)
-        size_t index_offset = 0;
-
         for (int f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
             auto vertices = model.face_vertices(shape, f);
 
             tri_vec4 vertices_clip;
             for (int i = 0; i < 3; ++i) {
                 vertices_clip[i] = transform * glm::vec4(vertices[i], 1.0f);
-                max_z = std::max<float>(vertices_clip[i].z, max_z);
-                min_z = std::min<float>(vertices_clip[i].z, min_z);
             }
 
-            if (rejectNegW(vertices_clip))
-                continue;
+            // Loop over clipper output
+            for(const auto& clipped_tri : clipTriangle(vertices_clip))
+            {
+                tri_vec3 vertices_ndc;
+                for (int i = 0; i < 3; ++i) {
+                    vertices_ndc[i] = clipped_tri[i] / clipped_tri[i].w;
+                }
 
-            tri_vec3 vertices_ndc;
-            for (int i = 0; i < 3; ++i) {
-                vertices_ndc[i] = vertices_clip[i] / vertices_clip[i].w;
+                if (isBackFace(vertices_ndc))
+                    continue;
+
+                const glm::vec3 n = normal({vertices_clip[0], vertices_clip[1], vertices_clip[2]});
+
+                const auto intensity = glm::dot(n, flash_light_dir);
+
+                tri_vec3 vertices_screen;
+                for (int i = 0; i < 3; ++i) {
+                    vertices_screen[i] = ToScreenSpace(vertices_ndc[i], target);
+                }
+
+                drawTriangle(vertices_screen, vertices_clip, intensity, target, zbuf, model, s, f);
+                // drawTriangleWireframe(vertices_screen, target);
             }
-
-            if (clipTrivialReject(vertices_ndc))
-                continue;
-
-            if (isBackFace(vertices_ndc))
-                continue;
-
-            const glm::vec3 n = normal({vertices_clip[0], vertices_clip[1], vertices_clip[2]});
-
-            const auto intensity = glm::dot(n, flash_light_dir);
-
-            tri_vec3 vertices_screen;
-            for (int i = 0; i < 3; ++i) {
-                vertices_screen[i] = ToScreenSpace(vertices_ndc[i], target);
-            }
-
-            drawTriangle(vertices_screen, vertices_clip, intensity, target, zbuf, model, s, f);
-//            drawTriangleWireframe(vertices_screen, target);
         }
     }
 }
